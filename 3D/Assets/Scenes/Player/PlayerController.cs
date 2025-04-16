@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        //Controller supported
         if (Gamepad.current != null)
         {
             if (Gamepad.current.buttonNorth.wasPressedThisFrame)

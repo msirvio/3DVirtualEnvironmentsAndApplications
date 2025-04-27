@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 { 
     bool isGolfing = false;
+    public Transform golfBall;
     public Transform camera;
     private CharacterController controller;
     public float movementSpeed = 5.0f;
@@ -29,6 +30,9 @@ public class PlayerController : MonoBehaviour
 
     private bool isWalking = false;
     private Animator animator;
+    private float powerCurrent; 
+    private float powerTarget;
+    public float animationSpeed = 5.0f;
 
 
     private void Start()
@@ -46,11 +50,19 @@ public class PlayerController : MonoBehaviour
             if (Gamepad.current.buttonNorth.wasPressedThisFrame)
             {
                 isGolfing = !isGolfing;
+
+                if (isGolfing) {
+                    transform.position = golfBall.position + new Vector3(-1,1,0);
+                }
             }
         } else {
             if (Input.GetKeyDown(KeyCode.E))
             {
                 isGolfing = !isGolfing;
+
+                if (isGolfing) {
+                    transform.position = golfBall.position + new Vector3(-1,1,0);
+                }
             }
         }
 
@@ -122,10 +134,29 @@ public class PlayerController : MonoBehaviour
                 walkAudio.Stop();
                 audioIsPlaying = false;
             }
-
-            //Animation
-            animator.SetBool("IsWalking", isWalking);
         }
+
+        //Animation
+        if (isGolfing) {
+            //Golf
+            animator.SetInteger("State", 2);
+
+            if (powerCurrent != powerTarget) {
+            powerCurrent = Mathf.MoveTowards(powerCurrent, powerTarget, Time.fixedDeltaTime * animationSpeed);
+            animator.SetFloat("Power", powerCurrent);
+        }
+
+        } else if (isWalking) {
+            //Walk
+            animator.SetInteger("State", 1);
+        } else {
+            //Idle
+            animator.SetInteger("State", 0);
+        }
+    }
+
+    public void SetPower(float power) {
+        powerTarget = power;
     }
 
     public bool GetIsGolfing () {

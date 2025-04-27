@@ -22,6 +22,8 @@ public class GolfHandler : MonoBehaviour
 
     public GameObject playerObject;
     PlayerController player;
+    bool readyToHit = false;
+    Vector3 velocityLastFrame = Vector3.zero;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,6 +42,8 @@ public class GolfHandler : MonoBehaviour
         if (rigidbody.linearVelocity != Vector3.zero
             && rigidbody.linearVelocity.magnitude < dragThreshold) 
         {
+            readyToHit = false;
+
             rigidbody.linearVelocity = drag * rigidbody.linearVelocity;
 
             if (rigidbody.linearVelocity.magnitude < stopSpeed) 
@@ -48,7 +52,13 @@ public class GolfHandler : MonoBehaviour
             }
         }
 
+        if (rigidbody.linearVelocity == Vector3.zero
+            && velocityLastFrame == Vector3.zero) {
+            readyToHit = true;
+        }
+
         if (player.GetIsGolfing()) {
+
             if (Gamepad.current != null)
             {
                 lookInput = Gamepad.current.rightStick.ReadValue();
@@ -81,8 +91,25 @@ public class GolfHandler : MonoBehaviour
             lineRenderer.SetPosition(1, transform.position + direction);
             lineRenderer.material.SetColor("_BaseColor", new Color(1.0f, (1.0f - direction.magnitude), 0.0f, 1.0f));
 
+            player.SetPower(direction.magnitude);
+
+
+
+            if (rigidbody.linearVelocity == Vector3.zero && direction != Vector3.zero && readyToHit) {
+                player.transform.position = 
+                    transform.position 
+                    + Quaternion.AngleAxis(90, Vector3.up) * direction.normalized
+                    + new Vector3(0,1,0);
+                
+                Vector3 newDirection = Quaternion.AngleAxis(-90, Vector3.up) * direction.normalized;
+                player.transform.rotation = Quaternion.LookRotation(newDirection, Vector3.up);
+            }
+
             if ((Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame)
                 || Input.GetKeyDown(KeyCode.F)) {
+
+                readyToHit = false;
+                player.SetPower(0);
 
                 if (rigidbody.linearVelocity == Vector3.zero) {
                     rigidbody.AddForce(direction * shotPower);
@@ -90,6 +117,7 @@ public class GolfHandler : MonoBehaviour
                 }
             }
         }
+        velocityLastFrame = rigidbody.linearVelocity;
     }
 
     void OnCollisionEnter(Collision collision)

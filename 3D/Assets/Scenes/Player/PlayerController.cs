@@ -27,11 +27,15 @@ public class PlayerController : MonoBehaviour
     private float rotationY = 0.0f;
     public float sensivity = 1.0f;
 
+    private bool isWalking = false;
+    private Animator animator;
+
 
     private void Start()
     {
         controller = gameObject.GetComponent<CharacterController>();
         walkAudio = gameObject.GetComponent<AudioSource>();
+        animator = transform.GetChild(0).GetComponent<Animator>();
     }
 
     void Update()
@@ -104,6 +108,8 @@ public class PlayerController : MonoBehaviour
 
             if (direction != Vector3.zero) 
             {
+                isWalking = true;
+
                 gameObject.transform.forward = direction;
 
                 if (!audioIsPlaying) {
@@ -112,9 +118,13 @@ public class PlayerController : MonoBehaviour
                 }
 
             } else {
+                isWalking = false;
                 walkAudio.Stop();
                 audioIsPlaying = false;
             }
+
+            //Animation
+            animator.SetBool("IsWalking", isWalking);
         }
     }
 
